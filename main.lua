@@ -17,10 +17,20 @@ local sinPointSpeed
 local sinTimer
 local sinTimerMax
 
+function math.round(num, place)
+	place = place or 1
+	local factor = 10^place
+	local numx = num * factor
+	local decimal = numx - math.floor(numx)
+	return (decimal < 0.5 and math.floor(numx) or math.ceil(numx)) / factor
+end
+
 function love.load()    
     love.graphics.setDefaultFilter('nearest', 'nearest')
-	love.graphics.setNewFont(40)
 	love.graphics.setLineStyle('rough')
+
+	local font = love.graphics.newFont('Pixeled.ttf', 5)
+	love.graphics.setFont(font)
 
 	wWidth, wHeight = love.graphics.getDimensions()
 	canvasScale = 4
@@ -46,6 +56,7 @@ function love.load()
 	sinTimerMax = 0.2
 end
 
+
 function love.update(dt)
 
 	radians = radians + dt*radianSpeed
@@ -68,6 +79,7 @@ function love.update(dt)
 
 	love.graphics.setCanvas(canvas)
 	 	love.graphics.clear()
+		love.graphics.print("Radians:\n" .. tostring(math.round(radians)) .. '\npi * ' .. tostring(math.round(radians/math.pi)), 10, 10)
 		love.graphics.translate(circleOffset.x, circleOffset.y)
 		-- circle
 		love.graphics.setColor(0.5, 0.5, 0.5)
@@ -103,9 +115,12 @@ function love.update(dt)
 
 end
 
+function love.keypressed(key)
+	if key == 'escape' or 'q' then love.event.quit() end
+end
+
 function love.draw()
 	-- text
-	love.graphics.print("Radians:\n" .. tostring(radians) .. '\npi * ' .. tostring(radians/math.pi), 10, 10)
 
 	love.graphics.draw(canvas, 0, 0, 0, canvasScale, canvasScale)
 end
