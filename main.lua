@@ -79,62 +79,61 @@ function love.load()
 
 	sliders = {}
 	sliders.radians = Slider:new(sx, sy, 0, math.pi*2)
-	sliders.radianSpeed = Slider:new(sx + sxDiff, sy, 0, 6)
+	sliders.radianSpeed = Slider:new(sx + sxDiff, sy, 0, 10)
 	sliders.radianSpeed:setValue(radianSpeed)
 
 	pi_image = love.graphics.newImage('pi.png')
 	piOffset = 1.6
 end
 
+local function drawGui()
+	love.graphics.print('sin ' .. tostring(math.round(radians, 1)) .. ': ', 5, 5)
+	love.graphics.print(tostring(math.round(sin, 2)), 40, 5)
+	sliders.radians:draw(tostring('rad: ' .. math.round(radians)))	
+	sliders.radianSpeed:draw('speed: ' .. tostring(math.round(radianSpeed)))
+end
+
+local function drawPi()
+	love.graphics.setColor(1, 1, 1)	
+	local iw, ih = pi_image:getWidth(), pi_image:getHeight()
+	love.graphics.draw(pi_image, cos * radius * piOffset - 6, sin * radius * piOffset, 0, 1, 1, iw/2, ih/2)
+	love.graphics.print(tostring(math.round(radians/math.pi)), cos * radius * piOffset + 6, sin * radius * piOffset, 0, 1, 1, iw/2, ih/2 + 5)
+end
+
+local function drawCircle()
+	love.graphics.setColor(0.5, 0.5, 0.5)
+	love.graphics.circle('line', 0, 0, radius)
+	
+	-- line connecting sin&cos and sin
+	love.graphics.setColor(1, 1, 1)
+	love.graphics.line(cos * radius, sin * radius, 0, sin * radius)
+
+	-- sin and cos
+	love.graphics.setColor(0.5, 0.5, 1)
+	love.graphics.circle('fill', cos * radius, sin * radius, smallCircleRadius)
+	-- sin
+	love.graphics.setColor(1, 0.8, 0.5)
+	love.graphics.circle('fill', 0, sin * radius, smallCircleRadius)
+	if sliders.radians:isMouseDown() then drawPi() end	
+end
+
 local function setCanvas()
-    love.graphics.setCanvas(canvas)
-	 	love.graphics.clear()
-
-	---- draw gui here
-	 	love.graphics.print('sin ' .. tostring(math.round(radians, 1)) .. ': ', 5, 5)
-		love.graphics.print(tostring(math.round(sin, 2)), 40, 5)
-		sliders.radians:draw(tostring('rad: ' .. math.round(radians)))	
-		sliders.radianSpeed:draw('speed: ' .. tostring(math.round(radianSpeed)))
+	love.graphics.setCanvas(canvas)
+		love.graphics.clear()
 		
+		drawGui()
 
-	---- draw parts of circle here
 		love.graphics.translate(circleOffset.x, circleOffset.y)
-		-- circle
-		love.graphics.setColor(0.5, 0.5, 0.5)
-		love.graphics.circle('line', 0, 0, radius)
-		
-		-- sin and cos
-		love.graphics.setColor(0.5, 0.5, 1)
-		love.graphics.circle('fill', cos * radius, sin * radius, smallCircleRadius)
-		-- sin
-		love.graphics.setColor(1, 0.8, 0.5)
-		love.graphics.circle('fill', 0, sin * radius, smallCircleRadius)
 
-		--pi 
-		if sliders.radians:isMouseDown() then
-			love.graphics.setColor(1, 1, 1)	
-			local iw, ih = pi_image:getWidth(), pi_image:getHeight()
-			love.graphics.draw(pi_image, cos * radius * piOffset - 6, sin * radius * piOffset, 0, 1, 1, iw/2, ih/2)
-			love.graphics.print(tostring(math.round(radians/math.pi)), cos * radius * piOffset + 6, sin * radius * piOffset, 0, 1, 1, iw/2, ih/2 + 5)
-		end
+		drawCircle()	
 
-		-- sin points
-		--[[for i, s in ipairs(sinPoints) do
-			love.graphics.circle('fill', circleOffset.x + s.x * radius, circleOffset.y + s.y * radius, 1)
-		end]]
-
-		-- sin lines
 		love.graphics.setColor(1, 1, 1)
 		if #sinPointsUnpacked >= 4 then love.graphics.line(unpack(sinPointsUnpacked)) end
-
-
-		-- line connecting sin&cos and sin
-		love.graphics.line(cos * radius, sin * radius, 0, sin * radius)
 
 	love.graphics.setCanvas()
 end
 
-function love.update(dt)
+local function updateRadians(dt)
 	if sliders.radians:isMouseDown() then
 		radians = sliders.radians:getValue()
 		radianSpeed = 0
@@ -147,7 +146,27 @@ function love.update(dt)
 	radians = radians + dt*radianSpeed
 	sliders.radians:setValue(radians)
 
-	if radians >= math.pi*2 then radians = radians - math.pi*2 end
+	if radians >= math.pi*2 then radians = radians - math.pi*2  end
+end
+
+local function updateSinPoints(dt)
+	sinPointsUnpacked = {}
+	for i, s in ipairs(sinPoints) do
+		s[1] = s[1] + sinPointSpeed * dt
+		if s[1] > love.graphics.getWidth() - circleOffset.x then
+			table.remove(sinPoints, i)
+		end
+		table.insert(sinPointsUnpacked, s[1])
+		table.insert(sinPointsUnpacked, s[2])
+	end
+	-- connects sinpoints to sin circle
+	table.insert(sinPointsUnpacked, 0)
+	table.insert(sinPointsUnpacked, sin * radius)
+end
+
+function love.update(dt)
+	updateRadians(dt)	
+
 	local mousex, mousey = love.mouse.getPosition()
 
 	for i, s in pairs(sliders) do
@@ -161,18 +180,7 @@ function love.update(dt)
 		table.insert(sinPoints, {0, sin * radius})
 	end
 
-	sinPointsUnpacked = {}
-	for i, s in ipairs(sinPoints) do
-		s[1] = s[1] + sinPointSpeed * dt
-		if s[1] > love.graphics.getWidth() - circleOffset.x then
-			table.remove(sinPoints, i)
-		end
-		table.insert(sinPointsUnpacked, s[1])
-		table.insert(sinPointsUnpacked, s[2])
-	end
-	-- connects sinpoints to sin circle
-	table.insert(sinPointsUnpacked, 0)
-	table.insert(sinPointsUnpacked, sin * radius)
+	updateSinPoints()
 
 	setCanvas()
 end	
