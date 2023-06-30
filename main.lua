@@ -1,18 +1,12 @@
-local CircleDisplay = require 'circleDisplay'
+local CircleDisplay = require 'CircleDisplay'
 
 local windowWidth, windowHeight
 local canvasWidth, canvasHeight
 local canvas
 local canvasScale
-local circleOffset
 
 local circleDisplay
 
-local sinPoints
-local sinPointsUnpacked
-local sinPointSpeed
-local sinTimer
-local sinTimerMax
 
 function math.round(num, place)
 	place = place or 1
@@ -45,12 +39,6 @@ function love.load()
 	canvas:setFilter('nearest', 'nearest')
 
 	circleDisplay = CircleDisplay:new(canvasWidth, canvasHeight)
-
-	sinPoints = {}
-	sinPointsUnpacked = {}
-	sinPointSpeed = 35
-	sinTimer = 0
-	sinTimerMax = 0.05
 end
 
 
@@ -60,44 +48,14 @@ local function setCanvas()
 		
 		circleDisplay:draw()
 
-		love.graphics.setColor(1, 1, 1)
-		if #sinPointsUnpacked >= 4 then love.graphics.line(unpack(sinPointsUnpacked)) end
-
 	love.graphics.setCanvas()
-end
-
-local function updateSinPoints(dt)
-	sinPointsUnpacked = {}
-	for i, s in ipairs(sinPoints) do
-		s[1] = s[1] + sinPointSpeed * dt
-		if s[1] > love.graphics.getWidth() - circleOffset.x then
-			table.remove(sinPoints, i)
-		end
-		table.insert(sinPointsUnpacked, s[1])
-		table.insert(sinPointsUnpacked, s[2])
-	end
-	-- connects sinpoints to sin circle
-	table.insert(sinPointsUnpacked, 0)
-	table.insert(sinPointsUnpacked, sin * radius)
 end
 
 function love.update(dt)
 
 	local mousex, mousey = love.mouse.getPosition()
---[[
-	for i, s in pairs(sliders) do
-		s:update(mousex/canvasScale, mousey/canvasScale)
-	end
-
-	sinTimer = sinTimer + dt
-	if sinTimer >= sinTimerMax then
-		sinTimer = sinTimer - sinTimerMax
-		table.insert(sinPoints, {0, sin * radius})
-	end ]]
 
 	circleDisplay:update(dt, mousex/canvasScale, mousey/canvasScale)
-
-	updateSinPoints(dt)
 
 	setCanvas()
 end	

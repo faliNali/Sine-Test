@@ -1,4 +1,5 @@
-local Slider = require 'slider'
+local Slider = require 'Slider'
+local SineCurve = require 'SineCurve'
 local pi_image = love.graphics.newImage('pi.png')
 
 local CircleDisplay = {}
@@ -30,13 +31,14 @@ function CircleDisplay:new(canvasWidth, canvasHeight)
 	cd.sliders = {}
 	cd.sliders.radians = Slider:new(sx, sy, 0, math.pi*2)
 	cd.sliders.radianSpeed = Slider:new(sx + sxDiff, sy, 0, 10, cd.radianSpeed)
+
+	cd.sineCurve = SineCurve:new(cd.radius, canvasWidth - cd.circleOffset.x)
     
     return cd
 end
 
 function CircleDisplay:getSin() return math.sin(self.radians) end
 function CircleDisplay:getCos() return math.cos(self.radians) end
-
 
 function CircleDisplay:updateRadians(dt)
 	if self.sliders.radians:isMouseDown() then
@@ -59,23 +61,23 @@ function CircleDisplay:update(dt, mousex, mousey)
 		slider:update(mousex, mousey)
 	end
 	self:updateRadians(dt)
+	self.sineCurve:update(dt, self:getSin())
 end
 
 function CircleDisplay:drawGui()
-	love.graphics.print('sin ' .. tostring(math.round(self.radians, 1)) .. ': ', 5, 5)
-	love.graphics.print(tostring(math.round(self:getSin(), 2)), 40, 5)
+	love.graphics.print('sin ' .. tostring(math.round(self.radians, 1)), 5, 5)
+	love.graphics.print('  =  ' .. tostring(math.round(self:getSin(), 2)), 30, 5)
 	self.sliders.radians:draw(tostring('rad: ' .. math.round(self.radians)))	
 	self.sliders.radianSpeed:draw('speed: ' .. tostring(math.round(self.radianSpeed)))
 end
 
 function CircleDisplay:drawPi()
-	love.graphics.setColor(1, 1, 1)	
-	local iw, ih = pi_image:getWidth(), pi_image:getHeight()
-    local sin, cos = self:getSin(), self:getCos()
-    local r = self.radius
-    local offset = self.piOffset
-	love.graphics.draw(pi_image, cos * r * offset - 6, sin * r * offset, 0, 1, 1, iw/2, ih/2)
-	love.graphics.print(tostring(math.round(self.radians/math.pi)), cos * r * offset + 6, sin * r * offset, 0, 1, 1, iw/2, ih/2 + 5)
+	local x = math.round(self:getCos() * self.radius * self.piOffset, 0)
+	local y = math.round(self:getSin() * self.radius * self.piOffset, 0)
+	local xOffset, yOffset = math.round(pi_image:getWidth(), 0)/2, math.round(pi_image:getHeight()/2, 0)
+
+	love.graphics.draw(pi_image, x - 6, y, 0, 1, 1, xOffset, yOffset)
+	love.graphics.print(tostring(math.round(self.radians/math.pi)), x + 6, y, 0, 1, 1, xOffset, yOffset + 5)
 end
 
 function CircleDisplay:drawCircle()
@@ -94,7 +96,9 @@ function CircleDisplay:drawCircle()
 	-- sin
 	love.graphics.setColor(1, 0.8, 0.5)
 	love.graphics.circle('fill', 0, sin * self.radius, self.smallCircleRadius)
-	if self.sliders.radians:isMouseDown() then self:drawPi() end	
+	-- pi
+	love.graphics.setColor(1, 1, 1)	
+	if self.sliders.radians:isMouseDown() then self:drawPi() end
 end
 
 function CircleDisplay:mousepressed(x, y, button)
@@ -104,11 +108,14 @@ function CircleDisplay:mousepressed(x, y, button)
 end
 
 function CircleDisplay:draw()
+
     self:drawGui()
 
     love.graphics.translate(self.circleOffset.x, self.circleOffset.y)
 
     self:drawCircle()	
+
+	self.sineCurve:draw()
 end
 
 return CircleDisplay
