@@ -1,17 +1,20 @@
 local Slider = {}
 Slider.__index = Slider
 
-function Slider:new(x, y, min, max)
+function Slider:new(x, y, min, max, startValue)
     local s = {}
     setmetatable(s, self)
 
     s.pos = {x = x, y = y}
     s.rect = {w = 60, h = 12}
-    s.handleWidth = 10 
+    s.handleWidth = 11 
 
-    s.value = 0.5
+    s.value = 0  
     s.range = {min = min, max = max}
-
+    if startValue then
+        s:setValue(startValue)
+    end
+    
     s.mouseDown = false
     s.mouseJustPressed = false
 
