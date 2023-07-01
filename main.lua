@@ -1,4 +1,6 @@
-local CircleDisplay = require 'CircleDisplay'
+local CircleDisplay
+local BouncingPiBackground
+local assets 
 
 local windowWidth, windowHeight
 local canvasWidth, canvasHeight
@@ -6,6 +8,7 @@ local canvas
 local canvasScale
 
 local circleDisplay
+local bouncingPiBackground
 
 
 function math.round(num, place)
@@ -28,8 +31,11 @@ function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
 	love.graphics.setLineStyle('rough')
 
-	local font = love.graphics.newFont('Pixeled.ttf', 5)
-	love.graphics.setFont(font)
+	CircleDisplay = require 'CircleDisplay'
+	BouncingPiBackground = require 'BouncingPiBackground'
+	assets = require 'assets'
+
+	love.graphics.setFont(assets.font)
 
 	windowWidth, windowHeight = love.graphics.getDimensions()
 	canvasScale = 4
@@ -39,6 +45,9 @@ function love.load()
 	canvas:setFilter('nearest', 'nearest')
 
 	circleDisplay = CircleDisplay:new(canvasWidth, canvasHeight)
+
+	bouncingPiBackground = BouncingPiBackground:new(canvasWidth, canvasHeight)
+	bouncingPiBackground:init()
 end
 
 
@@ -46,6 +55,7 @@ local function setCanvas()
 	love.graphics.setCanvas(canvas)
 		love.graphics.clear()
 		
+		bouncingPiBackground:draw()
 		circleDisplay:draw()
 
 	love.graphics.setCanvas()
@@ -56,6 +66,7 @@ function love.update(dt)
 	local mousex, mousey = love.mouse.getPosition()
 
 	circleDisplay:update(dt, mousex/canvasScale, mousey/canvasScale)
+	bouncingPiBackground:update(dt)
 
 	setCanvas()
 end	

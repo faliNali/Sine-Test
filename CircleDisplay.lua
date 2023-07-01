@@ -65,6 +65,7 @@ function CircleDisplay:update(dt, mousex, mousey)
 end
 
 function CircleDisplay:drawGui()
+	love.graphics.setColor(1, 1, 1)
 	love.graphics.print('sin ' .. tostring(math.round(self.radians, 1)), 5, 5)
 	love.graphics.print('  =  ' .. tostring(math.round(self:getSin(), 2)), 30, 5)
 	self.sliders.radians:draw(tostring('rad: ' .. math.round(self.radians)))	
