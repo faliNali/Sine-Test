@@ -37,7 +37,7 @@ function CircleDisplay:new(canvasWidth, canvasHeight)
     return cd
 end
 
-function CircleDisplay:getSin() return math.sin(self.radians) end
+function CircleDisplay:getSin() return -math.sin(self.radians) end
 function CircleDisplay:getCos() return math.cos(self.radians) end
 
 function CircleDisplay:updateRadians(dt)
@@ -67,7 +67,7 @@ end
 function CircleDisplay:drawGui()
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.print('sin ' .. tostring(math.round(self.radians, 1)), 5, 5)
-	love.graphics.print('  =  ' .. tostring(math.round(self:getSin(), 2)), 30, 5)
+	love.graphics.print('  =  ' .. tostring(math.round(-self:getSin(), 2)), 30, 5)
 	self.sliders.radians:draw(tostring('rad: ' .. math.round(self.radians)))	
 	self.sliders.radianSpeed:draw('speed: ' .. tostring(math.round(self.radianSpeed)))
 end
@@ -85,18 +85,22 @@ function CircleDisplay:drawCircle()
 	love.graphics.setColor(0.5, 0.5, 0.5)
 	love.graphics.circle('line', 0, 0, self.radius)
 	
-    local sin, cos = self:getSin(), self:getCos()
+    local sin, cos = self:getSin() * self.radius, self:getCos() * self.radius
 
 	-- line connecting sin&cos and sin
 	love.graphics.setColor(1, 1, 1)
-	love.graphics.line(cos * self.radius, sin * self.radius, 0, sin * self.radius)
+	love.graphics.line(cos, sin, 0, sin)
+
+	-- line connecting sin and origin
+	love.graphics.setColor(0.5, 0.5, 0.5)
+	love.graphics.line(0, sin, 0, 0)
 
 	-- sin and cos
 	love.graphics.setColor(0.5, 0.5, 1)
-	love.graphics.circle('fill', cos * self.radius, sin * self.radius, self.smallCircleRadius)
+	love.graphics.circle('fill', cos, sin, self.smallCircleRadius)
 	-- sin
 	love.graphics.setColor(1, 0.8, 0.5)
-	love.graphics.circle('fill', 0, sin * self.radius, self.smallCircleRadius)
+	love.graphics.circle('fill', 0, sin, self.smallCircleRadius)
 	-- pi
 	love.graphics.setColor(1, 1, 1)	
 	if self.sliders.radians:isMouseDown() then self:drawPi() end
